@@ -3,9 +3,8 @@ import { useEffect, useState } from "react";
 function App() {
     const [message, setMessage] = useState("");
 
-    // Fetching message from backend on mount
     useEffect(() => {
-        fetch("http://localhost:4000")
+        fetch("https://cloneflix-bk8d.onrender.com/")
             .then((res) => res.json())
             .then((data) => setMessage(data.message));
     }, []);
