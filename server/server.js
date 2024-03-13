@@ -2,15 +2,15 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const express = require("express");
 const cors = require("cors");
-
+const UserController = require("./Controller/UserController");
 const app = express();
 
 // middleware
-const corsOptions = {
+/*const corsOptions = {
     origin: "https://cloneflix-frontend.onrender.com", // frontend URI (ReactJS)
-};
+};**/
 app.use(express.json());
-app.use(cors(corsOptions));
+app.use(cors());
 
 // connect MongoDB
 mongoose
@@ -25,7 +25,15 @@ mongoose
         console.log(err);
     });
 
-// route
+// routes
+app.post("/api/v1/createUser", UserController.createUser);
+
+app.get("/api/v1/user", UserController.getAllUsers);
+
+app.post("/api/v1/user/:id/addMovie", UserController.watchlistAdd);
+
+app.delete("/api/v1/user/:id/deleteMovie", UserController.watchlistDelete);
+
 app.get("/", (req, res) => {
     res.status(201).json({ message: "Connected to Backend!" });
 });
