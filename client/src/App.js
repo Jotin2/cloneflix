@@ -1,19 +1,23 @@
-import { useEffect, useState } from "react";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { UserContextProvider } from "./context/UserContext";
+import Home from "./routes/Home";
+import SignIn from "./routes/SignIn";
 
-function App() {
-    const [message, setMessage] = useState("");
-
-    useEffect(() => {
-        fetch("https://cloneflix-bk8d.onrender.com/")
-            .then((res) => res.json())
-            .then((data) => setMessage(data.message));
-    }, []);
-
+const App = () => {
     return (
-        <div className="App">
-            <h1>{message}</h1>
-        </div>
+        <UserContextProvider>
+            {" "}
+            <div className="container">
+                <Router>
+                    <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/signIn" element={<SignIn />} />
+                    </Routes>
+                </Router>
+            </div>
+        </UserContextProvider>
     );
-}
+};
 
 export default App;

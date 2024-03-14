@@ -4,7 +4,6 @@ exports.createUser = async (req, res) => {
     try {
         // Create a new user instance based on the request body
         const newUser = new User({
-            username: req.body.username,
             email: req.body.email,
             password: req.body.password,
         });
