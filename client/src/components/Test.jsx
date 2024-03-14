@@ -1,15 +1,8 @@
 import React from "react";
-import UserApi from "../apis/userApi";
 
 export const Test = () => {
     const handleLogin = () => {
-        UserApi.get("/auth/google")
-            .then((response) => {
-                console.log(response.data); // Handle successful authentication
-            })
-            .catch((error) => {
-                console.error(error); // Handle error
-            });
+        window.location.href = "http://localhost:4000/api/v1/user/auth/google";
     };
 
     return (

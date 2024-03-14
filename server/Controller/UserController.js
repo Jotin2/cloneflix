@@ -1,16 +1,28 @@
 const User = require("../Model/userModel"); // Import the User model
 
-exports.createUser = async (req, res) => {
+exports.createUserManual = async (req, res) => {
     try {
-        // Create a new user instance based on the request body
-        const newUser = new User({
-            email: req.body.email,
-            password: req.body.password,
-        });
+        // Extract user data from the request body
+        const { email, password } = req.body;
+
+        // Check if the user already exists in your database
+        const existingUser = await User.findOne({ email });
+
+        // If the user already exists, send an error response
+        if (existingUser) {
+            return res.status(409).json({
+                status: "error",
+                message: "User already exists",
+            });
+        }
+
+        // Create a new user instance based on the extracted data
+        const newUser = new User({ email, password });
 
         // Save the new user to the database
         const savedUser = await newUser.save();
 
+        // Send success response
         res.status(201).json({
             status: "success",
             data: {
@@ -19,10 +31,59 @@ exports.createUser = async (req, res) => {
         });
     } catch (err) {
         console.error(err);
+        // Send error response
         res.status(500).json({
             status: "error",
             message: "Failed to create user",
         });
+    }
+};
+
+exports.createUser = async (profile, req, res) => {
+    try {
+        let userData;
+
+        if (req) {
+            // Extract user data from the request body
+            const { email, password } = req.body;
+            userData = { email, password };
+        } else {
+            // Extract user data from the profile object (for Google sign-ins)
+            userData = { email: profile.email, password: "test" };
+        }
+
+        // Check if the user already exists in your database
+        let user = await User.findOne({ email: userData.email });
+
+        // If the user doesn't exist, create a new user
+        if (!user) {
+            // Create a new user instance based on the extracted data
+            const newUser = new User(userData);
+
+            // Save the new user to the database
+            user = await newUser.save();
+
+            // Send success response
+            return {
+                status: "success",
+                data: {
+                    user: user,
+                },
+            };
+        } else {
+            // Send user already exists response
+            return {
+                status: "error",
+                message: "User already exists",
+            };
+        }
+    } catch (err) {
+        console.error(err);
+        // Send error response
+        return {
+            status: "error",
+            message: "Failed to create user",
+        };
     }
 };
 

@@ -2,20 +2,31 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const express = require("express");
 const cors = require("cors");
-const GoogleStrategy = require("passport-google-oauth2").Strategy;
-const passport = require("passport");
 const UserController = require("./Controller/UserController");
-const passwordGenerator = require("password-generator");
-const User = require("./Model/userModel");
+const cookieSession = require("cookie-session");
+const passport = require("passport");
+const passportSetup = require("./passport");
 const app = express();
 
+//app.use(cors());
+app.use(
+    cookieSession({
+        name: "session",
+        keys: ["cyberwolve"],
+        maxAge: 24 * 60 * 60 * 100,
+    })
+);
+
 // middleware
-/*const corsOptions = {
-    origin: "https://cloneflix-frontend.onrender.com", // frontend URI (ReactJS)
-};**/
-app.use(express.json());
-app.use(cors());
+const corsOptions = {
+    origin: "http://localhost:3000", // frontend URI (ReactJS)
+    methods: "GET,POST,PUT,DELETE",
+    credentials: true,
+};
+app.use(cors(corsOptions));
 app.use(passport.initialize());
+app.use(passport.session());
+app.use(express.json());
 
 // connect MongoDB
 mongoose
@@ -30,52 +41,43 @@ mongoose
         console.log(err);
     });
 
-app.get("/api/v1/user/auth/google", passport.authenticate("google", { scope: ["email"] }));
+app.get("/api/v1/user/auth/login/success", (req, res) => {
+    if (req.user) {
+        res.status(200).json({
+            error: false,
+            message: "Successfully Logged In",
+            user: req.user,
+        });
+    } else {
+        res.status(403).json({ error: true, message: "Not Authorized" });
+    }
+});
 
-// configure Google OAuth 2.0
-passport.use(
-    new GoogleStrategy(
-        {
-            clientID: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            callbackURL: "/api/v1/user/auth/google/callback",
-        },
-        async function (accessToken, refreshToken, profile, done) {
-            try {
-                console.log("test");
-                // Check if the user already exists in your database
-                let user = await User.findOne({ email: profile.email });
-
-                // If the user doesn't exist, create a new user
-                if (!user) {
-                    // Call createUser controller to create a new user
-                    const randomPassword = passwordGenerator.generateRandomPassword();
-                    user = await UserController.createUser({
-                        email: profile.email,
-                        password: randomPassword,
-                    });
-                }
-
-                // Call done() with the user object
-                done(null, user);
-            } catch (err) {
-                console.error(err);
-                done(err, null);
-            }
-        }
-    )
-);
+app.get("/api/v1/user/login/failed", (req, res) => {
+    res.status(401).json({
+        error: true,
+        message: "Log in failure",
+    });
+});
 
 app.get(
     "/api/v1/user/auth/google/callback",
-    passport.authenticate("google", { failureRedirect: "/login" }),
-    function (req, res) {
-        // Successful authentication, redirect to the homepage or another route
-        res.redirect("/");
-    }
+    passport.authenticate("google", {
+        successRedirect: process.env.CLIENT_URL,
+        failureRedirect: "/api/v1/user/login/failed",
+    })
 );
 
+app.get("/api/v1/user/auth/google", passport.authenticate("google", ["profile", "email"]));
+
+app.get("/api/v1/user/auth/logout", (req, res) => {
+    req.logout();
+    res.redirect(process.env.CLIENT_URL);
+});
+
 // routes
+app.post("/api/v1/user/createManual", UserController.createUserManual);
+
 app.post("/api/v1/user/create", UserController.createUser);
 
 app.get("/api/v1/user/getAll", UserController.getAllUsers);
