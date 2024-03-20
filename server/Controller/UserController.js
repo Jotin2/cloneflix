@@ -11,7 +11,7 @@ exports.createUserManual = async (req, res) => {
         // If the user already exists, send an error response
         if (existingUser) {
             return res.status(409).json({
-                status: "error",
+                status: "error ",
                 message: "User already exists",
             });
         }

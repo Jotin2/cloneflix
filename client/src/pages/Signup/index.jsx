@@ -26,7 +26,9 @@ function Signup({ updateUser }) {
 
             // Redirect to the homepage after successful user creation
             if (response.status === 201) {
-                updateUser(newUser);
+                // Call updateUser to update the user state with the newly created user
+                console.log("11111111", response.data.user);
+                updateUser(response.data.user);
                 window.location.href = "/"; // Redirect to the homepage
             }
         } catch (error) {
