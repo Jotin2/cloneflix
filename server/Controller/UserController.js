@@ -34,7 +34,7 @@ exports.createUserManual = async (req, res) => {
         // Send error response
         res.status(500).json({
             status: "error",
-            message: "Failed to create user",
+            message: "Failed to create users",
         });
     }
 };
